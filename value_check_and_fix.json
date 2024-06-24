@@ -1,0 +1,103 @@
+// This code is to automatically is the newly added value of Sheet A already exists in the sheet B, and doing the follow up tasts automatically. 
+
+function editColN(e) {
+  var sheet = e.source.getActiveSheet();
+  var sheetName = "sheetNameA"; 
+  var editedRange = e.range;
+  var editedSheet = editedRange.getSheet();
+  Logger.log(editedRange.getValue())
+
+  // Check if the edited range is in column N, the new value is included in the target values
+  if (editedSheet.getName() == sheetName && editedRange.getColumn() == 14 && e.value == 'valueA') {
+    statusMarkingBot(e);
+  } else if (editedSheet.getName() == sheetName && editedRange.getColumn() == 14 && e.value == 'valueB'){
+    statusMarkingBot(e);
+  } else if (editedSheet.getName() == sheetName && editedRange.getColumn() == 14 && e.value == 'valueC'){
+    comparePolarLink(e);
+  } else {
+    Logger.log("It's none of the above");
+  }
+}
+
+function statusMarkingBot(e) {
+
+  var sheet = e.source.getActiveSheet();
+  var row = e.range.getRow();
+  var targetId = sheet.getRange('C'+ row).getValue().match(/\d+/)[0];
+  var targetPage = App.getTarget(targetId);
+  var targetStatus = targetPage.getIssueStatus().toString();
+
+  if (targetStatus == 'statusA') {
+  targetPage.setIssueStatus('statusB').save();
+  }
+  compareLink(e);
+}
+
+function compareLink(e){
+  Logger.log("compareLink Function starts.")
+  var sheet = e.range.getSheet();
+  Logger.log(sheet.getName());
+  var sheetB = SpreadsheetApp.openByUrl("sheetAURL").getSheetByName('sheetNameB');
+
+  var row = e.range.getRow();
+  var newPLink = sheet.getRange("K" + row).getValue().match(/id=.+/)[0];
+
+  var sheetAColK = sheetB.getRange('K:K');
+  var sheetALink = sheetAColK.getValues();
+
+  var matchingRow = 0;
+
+  Logger.log("Starts the comparison")
+
+
+  for (var i = 1; i < ambiguousPolarLink.length; i++) {
+
+
+    if (newLink == sheetALink[i][0].match(/id=.+/)[0]) {
+      Logger.log("Same value found in sheetA");
+      matchingRow = i+1;
+      fixTheStatus(e, matchingRow);
+      break;
+    }
+  }  
+}
+
+
+
+
+function fixTheStatus(e, matchingRow){
+  Logger.log("fixTheStatus Function Starts")
+  var sheetB = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('sheetNameA');
+  var sheet = e.range.getSheet();
+  var row = e.range.getRow();
+
+  sheet.getRange('N' + row).setValue("statusC");
+  sheet.getRange('Q' + row).setValue("statusD");
+  sheet.getRange('S' + row).setValue("N/A");
+  sheet.getRange('T' + row).setValue("N/A");
+
+  var pageId = sheet.getRange("C" + row).getValue();
+  var id  = pageId.match(/\d+/)[0];
+  var page = App.getPage(id);
+  Logger.log(matchingRow);
+  var dupePageId = sheetB.getRange(matchingRow, 3).getValue().match(/\d+/)[0];
+
+  if (page.getIssueStatus().toString() == "statusA" || page.getIssueStatus().toString() == "statusB"){
+    page.setStatusCOf(dupePageId).save();
+    Logger.log('page set to statusC');
+  } else {
+    Logger.log("The page status is not 'statusA', or 'statusB'");
+  }
+  setType(e);
+}
+
+function setType(e){
+
+  var sheet = e.range.getSheet();
+  var row = e.range.getRow();
+  var cell = sheet.getRange("W"+row);
+  Logger.log("Clear the formula and rewrite the type");
+  cell.setValue("typeA");
+
+
+}
