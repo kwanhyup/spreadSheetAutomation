@@ -40,7 +40,7 @@ function compareLink(e){
   var sheetB = SpreadsheetApp.openByUrl("sheetAURL").getSheetByName('sheetNameB');
 
   var row = e.range.getRow();
-  var newPLink = sheet.getRange("K" + row).getValue().match(/id=.+/)[0];
+  var newLink = sheet.getRange("K" + row).getValue().match(/id=.+/)[0];
 
   var sheetAColK = sheetB.getRange('K:K');
   var sheetALink = sheetAColK.getValues();
